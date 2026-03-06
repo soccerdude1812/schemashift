@@ -55,9 +55,9 @@ export function Hero() {
           className="mt-6 text-lg sm:text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto leading-relaxed text-balance animate-fade-in-up"
           style={{ animationDelay: "0.2s" }}
         >
-          SchemaShift remembers every CSV you&apos;ve ever uploaded. Detect schema drift,
-          auto-apply cleaning recipes, and catch data quality issues before they
-          break your pipeline.
+          SchemaShift lives inside your spreadsheet. Detect schema drift,
+          track data quality, and catch breaking changes — without ever leaving
+          Google Sheets.
         </p>
 
         {/* CTAs */}
@@ -71,7 +71,7 @@ export function Hero() {
             className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold px-8 py-6 text-base rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all duration-300"
           >
             <Link href="/dashboard">
-              Try SchemaShift Free
+              Install for Google Sheets
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>

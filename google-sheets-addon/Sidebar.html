@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #09090b;
+      color: #e4e4e7;
+      font-size: 13px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      padding: 16px;
+      border-bottom: 1px solid #27272a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-icon {
+      width: 28px; height: 28px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .header-icon svg { width: 16px; height: 16px; color: #34d399; }
+    .header h1 { font-size: 15px; font-weight: 600; color: #fafafa; }
+
+    /* States */
+    .state { display: none; padding: 16px; }
+    .state.active { display: block; }
+
+    /* Loading */
+    .loading-state {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 48px 16px; gap: 16px;
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid #27272a;
+      border-top-color: #10b981;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { color: #a1a1aa; font-size: 13px; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 48px 16px;
+    }
+    .empty-state p { color: #71717a; margin-bottom: 16px; }
+
+    /* Button */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 8px 16px; border-radius: 6px; font-size: 13px;
+      font-weight: 500; cursor: pointer; border: none; transition: all 0.15s;
+      gap: 6px;
+    }
+    .btn-primary {
+      background: #10b981; color: #09090b;
+    }
+    .btn-primary:hover { background: #34d399; }
+    .btn-secondary {
+      background: #27272a; color: #e4e4e7; border: 1px solid #3f3f46;
+    }
+    .btn-secondary:hover { background: #3f3f46; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-full { width: 100%; }
+
+    /* Results */
+    .section {
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; color: #71717a; margin-bottom: 8px;
+    }
+
+    /* Schema table */
+    .schema-table {
+      width: 100%; border-collapse: collapse;
+      background: #18181b; border-radius: 8px; overflow: hidden;
+      border: 1px solid #27272a;
+    }
+    .schema-table th {
+      padding: 8px 10px; font-size: 11px; font-weight: 600;
+      color: #a1a1aa; text-align: left; background: #1c1c1f;
+      border-bottom: 1px solid #27272a;
+    }
+    .schema-table td {
+      padding: 6px 10px; font-size: 12px;
+      border-bottom: 1px solid #27272a;
+    }
+    .schema-table tr:last-child td { border-bottom: none; }
+    .schema-table .col-name { font-weight: 500; color: #fafafa; }
+    .schema-table .col-type {
+      display: inline-block; padding: 1px 6px; border-radius: 4px;
+      font-size: 11px; font-weight: 500;
+    }
+    .type-string { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+    .type-integer, .type-float { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+    .type-date, .type-datetime, .type-timestamp { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+    .type-email { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .type-boolean { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+    .type-url { background: rgba(6, 182, 212, 0.15); color: #22d3ee; }
+    .type-currency { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .type-default { background: rgba(161, 161, 170, 0.1); color: #a1a1aa; }
+
+    /* Quality ring */
+    .quality-card {
+      display: flex; align-items: center; gap: 16px;
+      background: #18181b; border: 1px solid #27272a;
+      border-radius: 8px; padding: 16px;
+    }
+    .quality-ring {
+      width: 56px; height: 56px; position: relative; flex-shrink: 0;
+    }
+    .quality-ring svg { width: 56px; height: 56px; transform: rotate(-90deg); }
+    .quality-ring .bg { stroke: #27272a; fill: none; stroke-width: 4; }
+    .quality-ring .fill { fill: none; stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+    .quality-score {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      font-size: 14px; font-weight: 700; color: #fafafa;
+    }
+    .quality-info h3 { font-size: 14px; font-weight: 600; color: #fafafa; }
+    .quality-info p { font-size: 12px; color: #71717a; }
+
+    /* Drift alerts */
+    .drift-card {
+      background: #18181b; border: 1px solid #27272a;
+      border-radius: 8px; padding: 12px;
+    }
+    .drift-item {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 6px 0; border-bottom: 1px solid #27272a;
+    }
+    .drift-item:last-child { border-bottom: none; }
+    .drift-badge {
+      padding: 1px 6px; border-radius: 4px;
+      font-size: 10px; font-weight: 600; text-transform: uppercase; flex-shrink: 0;
+    }
+    .drift-added { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .drift-removed { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+    .drift-changed { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+    .drift-text { font-size: 12px; color: #d4d4d8; }
+
+    /* Stats row */
+    .stats-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .stat-card {
+      background: #18181b; border: 1px solid #27272a;
+      border-radius: 8px; padding: 12px;
+    }
+    .stat-value { font-size: 20px; font-weight: 700; color: #fafafa; }
+    .stat-label { font-size: 11px; color: #71717a; }
+
+    /* Source info */
+    .source-info {
+      background: #18181b; border: 1px solid #27272a;
+      border-radius: 8px; padding: 12px; font-size: 12px; color: #a1a1aa;
+    }
+    .source-info strong { color: #fafafa; }
+
+    /* Footer */
+    .footer {
+      padding: 12px 16px; border-top: 1px solid #27272a;
+      text-align: center; margin-top: auto;
+    }
+    .footer a {
+      color: #10b981; text-decoration: none; font-size: 12px;
+    }
+    .footer a:hover { color: #34d399; }
+
+    /* Error */
+    .error-box {
+      background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 8px; padding: 12px; color: #fca5a5; font-size: 12px;
+      margin-bottom: 12px;
+    }
+
+    /* No drift */
+    .no-drift {
+      text-align: center; padding: 16px; color: #71717a; font-size: 12px;
+    }
+    .no-drift .check { font-size: 24px; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <ellipse cx="12" cy="5" rx="9" ry="3"/>
+        <path d="M3 5V19A9 3 0 0 0 21 19V5"/>
+        <path d="M3 12A9 3 0 0 0 21 12"/>
+      </svg>
+    </div>
+    <h1>SchemaShift</h1>
+  </div>
+
+  <!-- Loading state -->
+  <div id="state-loading" class="state loading-state">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-text">Reading sheet data...</div>
+  </div>
+
+  <!-- Empty state -->
+  <div id="state-empty" class="state empty-state">
+    <p>Open a sheet with data, then click Analyze to detect its schema.</p>
+    <button class="btn btn-primary btn-full" onclick="startAnalysis()">
+      Analyze This Sheet
+    </button>
+  </div>
+
+  <!-- Error state -->
+  <div id="state-error" class="state">
+    <div class="error-box" id="error-message"></div>
+    <button class="btn btn-secondary btn-full" onclick="startAnalysis()">
+      Try Again
+    </button>
+  </div>
+
+  <!-- Results state -->
+  <div id="state-results" class="state">
+    <!-- Source info -->
+    <div class="section">
+      <div class="source-info" id="source-info"></div>
+    </div>
+
+    <!-- Stats -->
+    <div class="section">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-rows">-</div>
+          <div class="stat-label">Rows</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-cols">-</div>
+          <div class="stat-label">Columns</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quality -->
+    <div class="section">
+      <div class="section-title">Data Quality</div>
+      <div class="quality-card">
+        <div class="quality-ring">
+          <svg viewBox="0 0 56 56">
+            <circle class="bg" cx="28" cy="28" r="24"/>
+            <circle class="fill" id="quality-fill" cx="28" cy="28" r="24"
+              stroke-dasharray="150.8" stroke-dashoffset="150.8"/>
+          </svg>
+          <div class="quality-score" id="quality-pct">-</div>
+        </div>
+        <div class="quality-info">
+          <h3 id="quality-label">Analyzing...</h3>
+          <p id="quality-detail"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Schema -->
+    <div class="section">
+      <div class="section-title">Detected Schema</div>
+      <table class="schema-table">
+        <thead>
+          <tr><th>Column</th><th>Type</th><th>Nulls</th></tr>
+        </thead>
+        <tbody id="schema-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Drift -->
+    <div class="section" id="drift-section" style="display:none;">
+      <div class="section-title">Schema Drift</div>
+      <div class="drift-card" id="drift-body"></div>
+    </div>
+
+    <!-- Actions -->
+    <div class="section" style="display:flex; gap:8px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="startAnalysis()">
+        Re-analyze
+      </button>
+      <button class="btn btn-secondary" style="flex:1;" onclick="sendToApi()">
+        Track Source
+      </button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <a href="https://schemashift.vercel.app" target="_blank">schemashift.vercel.app</a>
+  </div>
+
+  <script>
+    // Type detection heuristics (client-side, no API needed)
+    const TYPE_PATTERNS = {
+      email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      url: /^https?:\/\/.+/i,
+      date: /^\d{4}-\d{2}-\d{2}$|^\d{1,2}\/\d{1,2}\/\d{2,4}$/,
+      datetime: /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/,
+      boolean: /^(true|false|yes|no|0|1)$/i,
+      integer: /^-?\d+$/,
+      float: /^-?\d+\.\d+$/,
+      currency: /^\$[\d,.]+$|^[\d,.]+\s*(USD|EUR|GBP)$/i,
+      phone: /^\+?[\d\s\-()]{7,15}$/,
+      uuid: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+      ip_address: /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/,
+    };
+
+    function detectType(samples) {
+      if (!samples || samples.length === 0) return 'unknown';
+      const counts = {};
+      for (const s of samples) {
+        for (const [type, pattern] of Object.entries(TYPE_PATTERNS)) {
+          if (pattern.test(s.trim())) {
+            counts[type] = (counts[type] || 0) + 1;
+            break;
+          }
+        }
+      }
+      // Pick the type that matches most samples
+      let bestType = 'string';
+      let bestCount = 0;
+      for (const [type, count] of Object.entries(counts)) {
+        if (count > bestCount) {
+          bestCount = count;
+          bestType = type;
+        }
+      }
+      // Only classify if >60% of samples match
+      if (bestCount / samples.length >= 0.6) return bestType;
+      return 'string';
+    }
+
+    function getTypeClass(type) {
+      const t = type.toLowerCase();
+      if (['integer', 'float', 'number'].includes(t)) return 'type-integer';
+      if (['date', 'datetime', 'timestamp'].includes(t)) return 'type-date';
+      if (t === 'email') return 'type-email';
+      if (t === 'boolean') return 'type-boolean';
+      if (t === 'url') return 'type-url';
+      if (t === 'currency') return 'type-currency';
+      if (t === 'string') return 'type-string';
+      return 'type-default';
+    }
+
+    function computeQuality(columns) {
+      if (!columns || columns.length === 0) return 0;
+      let totalCells = 0;
+      let nonNullCells = 0;
+      for (const col of columns) {
+        totalCells += col.totalRows;
+        nonNullCells += (col.totalRows - col.nullCount);
+      }
+      return totalCells > 0 ? Math.round((nonNullCells / totalCells) * 100) : 0;
+    }
+
+    function qualityLabel(pct) {
+      if (pct >= 95) return 'Excellent';
+      if (pct >= 85) return 'Good';
+      if (pct >= 70) return 'Fair';
+      return 'Needs Attention';
+    }
+
+    function qualityColor(pct) {
+      if (pct >= 85) return '#10b981';
+      if (pct >= 70) return '#fbbf24';
+      return '#ef4444';
+    }
+
+    // State management
+    let previousSchema = null;
+    const STORAGE_KEY = 'schemashift_prev_schema';
+
+    function loadPreviousSchema(sheetKey) {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY + '_' + sheetKey);
+        if (stored) return JSON.parse(stored);
+      } catch (e) {}
+      return null;
+    }
+
+    function savePreviousSchema(sheetKey, schema) {
+      try {
+        localStorage.setItem(STORAGE_KEY + '_' + sheetKey, JSON.stringify(schema));
+      } catch (e) {}
+    }
+
+    function detectDrift(prevSchema, currentSchema) {
+      if (!prevSchema) return null;
+      const drifts = [];
+      const prevCols = new Map(prevSchema.map(c => [c.name, c.type]));
+      const currCols = new Map(currentSchema.map(c => [c.name, c.type]));
+
+      for (const [name, type] of currCols) {
+        if (!prevCols.has(name)) {
+          drifts.push({ type: 'added', column: name, detail: `New column (${type})` });
+        } else if (prevCols.get(name) !== type) {
+          drifts.push({ type: 'changed', column: name, detail: `${prevCols.get(name)} → ${type}` });
+        }
+      }
+      for (const [name] of prevCols) {
+        if (!currCols.has(name)) {
+          drifts.push({ type: 'removed', column: name, detail: 'Column removed' });
+        }
+      }
+      return drifts.length > 0 ? drifts : null;
+    }
+
+    // UI transitions
+    function showState(stateId) {
+      document.querySelectorAll('.state').forEach(el => el.classList.remove('active'));
+      document.getElementById('state-' + stateId).classList.add('active');
+    }
+
+    function showError(msg) {
+      document.getElementById('error-message').textContent = msg;
+      showState('error');
+    }
+
+    // Main analysis flow
+    function startAnalysis() {
+      showState('loading');
+      document.getElementById('loading-text').textContent = 'Reading sheet data...';
+
+      google.script.run
+        .withSuccessHandler(onSheetData)
+        .withFailureHandler(function(err) { showError('Failed to read sheet: ' + err.message); })
+        .getSheetData();
+    }
+
+    function onSheetData(data) {
+      if (!data || data.error) {
+        showError(data ? data.error : 'No data returned.');
+        return;
+      }
+
+      // Detect types locally
+      const schema = data.columns.map(col => ({
+        name: col.name,
+        type: detectType(col.samples),
+        nullRate: col.totalRows > 0 ? Math.round((col.nullCount / col.totalRows) * 100) : 0,
+      }));
+
+      const sheetKey = data.spreadsheetId + '_' + data.sheetName;
+      const prevSchema = loadPreviousSchema(sheetKey);
+      const drifts = detectDrift(prevSchema, schema);
+
+      // Save current schema for future drift detection
+      savePreviousSchema(sheetKey, schema);
+
+      // Render results
+      renderResults(data, schema, drifts);
+    }
+
+    function renderResults(data, schema, drifts) {
+      // Source info
+      document.getElementById('source-info').innerHTML =
+        '<strong>' + escapeHtml(data.spreadsheetName) + '</strong> / ' + escapeHtml(data.sheetName);
+
+      // Stats
+      document.getElementById('stat-rows').textContent = data.rowCount.toLocaleString();
+      document.getElementById('stat-cols').textContent = data.columnCount;
+
+      // Quality
+      const quality = computeQuality(data.columns);
+      const color = qualityColor(quality);
+      document.getElementById('quality-pct').textContent = quality + '%';
+      document.getElementById('quality-label').textContent = qualityLabel(quality);
+      document.getElementById('quality-detail').textContent =
+        quality + '% data completeness across ' + data.columnCount + ' columns';
+
+      const fill = document.getElementById('quality-fill');
+      fill.setAttribute('stroke', color);
+      const circumference = 2 * Math.PI * 24;
+      const offset = circumference - (quality / 100) * circumference;
+      setTimeout(() => { fill.style.strokeDashoffset = offset; }, 50);
+
+      // Schema table
+      const tbody = document.getElementById('schema-body');
+      tbody.innerHTML = '';
+      for (const col of schema) {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td class="col-name">' + escapeHtml(col.name) + '</td>' +
+          '<td><span class="col-type ' + getTypeClass(col.type) + '">' + col.type + '</span></td>' +
+          '<td style="color:#71717a">' + col.nullRate + '%</td>';
+        tbody.appendChild(tr);
+      }
+
+      // Drift
+      const driftSection = document.getElementById('drift-section');
+      const driftBody = document.getElementById('drift-body');
+      if (drifts && drifts.length > 0) {
+        driftSection.style.display = 'block';
+        driftBody.innerHTML = '';
+        for (const d of drifts) {
+          const div = document.createElement('div');
+          div.className = 'drift-item';
+          div.innerHTML =
+            '<span class="drift-badge drift-' + d.type + '">' + d.type + '</span>' +
+            '<span class="drift-text"><strong>' + escapeHtml(d.column) + '</strong> — ' + escapeHtml(d.detail) + '</span>';
+          driftBody.appendChild(div);
+        }
+      } else {
+        driftSection.style.display = 'block';
+        driftBody.innerHTML =
+          '<div class="no-drift"><div class="check">&#10003;</div>No drift detected from previous analysis</div>';
+      }
+
+      showState('results');
+    }
+
+    // Send to API for persistent tracking
+    function sendToApi() {
+      showState('loading');
+      document.getElementById('loading-text').textContent = 'Tracking source with SchemaShift...';
+
+      google.script.run
+        .withSuccessHandler(function(sessionId) {
+          google.script.run
+            .withSuccessHandler(function(result) {
+              if (result && result.error) {
+                showError(result.error);
+              } else {
+                // Re-analyze to show updated results
+                startAnalysis();
+              }
+            })
+            .withFailureHandler(function(err) { showError('API call failed: ' + err.message); })
+            .analyzeWithApi(sessionId);
+        })
+        .withFailureHandler(function(err) { showError('Session error: ' + err.message); })
+        .getOrCreateSession();
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // Auto-start analysis when sidebar opens
+    startAnalysis();
+  </script>
+
+</body>
+</html>

@@ -2,11 +2,12 @@ import { Hero } from "@/components/landing/hero";
 import { Features } from "@/components/landing/features";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { InteractiveDemo } from "@/components/landing/interactive-demo";
+import { IntegrationShowcase } from "@/components/landing/integration-showcase";
 import { DriftPreview } from "@/components/landing/drift-preview";
 import { PricingTable } from "@/components/landing/pricing-table";
 import { Footer } from "@/components/landing/footer";
 import { LandingNav } from "@/components/landing/landing-nav";
-import { Database, Shield, Globe } from "lucide-react";
+import { Sheet, Shield, Puzzle } from "lucide-react";
 
 export default function LandingPage() {
   return (
@@ -22,8 +23,8 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-6">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-12">
             <div className="flex items-center gap-2 text-zinc-500 text-sm">
-              <Database className="h-4 w-4 text-emerald-500" />
-              <span>Open Source</span>
+              <Sheet className="h-4 w-4 text-emerald-500" />
+              <span>Google Sheets Add-on</span>
             </div>
             <div className="hidden sm:block w-px h-4 bg-zinc-800" />
             <div className="flex items-center gap-2 text-zinc-500 text-sm">
@@ -32,12 +33,15 @@ export default function LandingPage() {
             </div>
             <div className="hidden sm:block w-px h-4 bg-zinc-800" />
             <div className="flex items-center gap-2 text-zinc-500 text-sm">
-              <Globe className="h-4 w-4 text-emerald-500" />
-              <span>No Account Required</span>
+              <Puzzle className="h-4 w-4 text-emerald-500" />
+              <span>Works Where You Work</span>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Integration Showcase — the primary value prop */}
+      <IntegrationShowcase />
 
       {/* Features */}
       <Features />
