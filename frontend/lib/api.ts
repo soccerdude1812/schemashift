@@ -1,7 +1,7 @@
 import { ApiError, PaginatedResponse, Scan, Session, Source, Recipe, DriftEvent } from './types';
 import { mockApi } from './mock-api';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7860';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 const CLIENT_TIMEOUT = 45000;
 const MOCK_FAILURE_THRESHOLD = 2; // Switch to mock after this many consecutive failures
 
@@ -9,7 +9,7 @@ const MOCK_FAILURE_THRESHOLD = 2; // Switch to mock after this many consecutive 
 // Mock-mode state (client-side only)
 // ---------------------------------------------------------------------------
 let consecutiveFailures = 0;
-let useMockApi = false;
+let useMockApi = !API_URL; // No backend URL configured → use mock immediately
 
 /** Check if we're currently in demo/mock mode */
 export function isUsingMockApi(): boolean {
