@@ -14,13 +14,8 @@ interface FileDropzoneProps {
 }
 
 const ACCEPTED_TYPES = ['.csv', '.tsv', '.json', '.jsonl'];
-const ACCEPTED_MIMES = [
-  'text/csv',
-  'text/tab-separated-values',
-  'application/json',
-  'application/x-ndjson',
-  'text/plain',
-];
+// MIME validation is handled by the browser's file input accept attribute
+// const ACCEPTED_MIMES = ['text/csv', 'text/tab-separated-values', 'application/json', 'application/x-ndjson', 'text/plain'];
 
 export function FileDropzone({
   onFileSelect,

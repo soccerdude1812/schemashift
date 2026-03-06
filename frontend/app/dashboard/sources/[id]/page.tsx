@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { Source, DriftEvent, Recipe } from '@/lib/types';
-import { cn, formatDate, formatDateTime } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn, formatDate } from '@/lib/utils';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -72,8 +72,9 @@ export default function SourceDetailPage() {
       setRecipes(Array.isArray(recipeData) ? recipeData : []);
       setEditName(sourceData.name);
       setEditDesc(sourceData.description || '');
-    } catch (err: any) {
-      setError(err.error || 'Failed to load source');
+    } catch (err: unknown) {
+      const e = err as { error?: string };
+      setError(e.error || 'Failed to load source');
     } finally {
       setLoading(false);
     }
@@ -90,8 +91,9 @@ export default function SourceDetailPage() {
       const updated = await api.updateSource(sourceId, { name: editName.trim() });
       setSource(updated);
       setEditingName(false);
-    } catch (err: any) {
-      setError(err.error || 'Failed to update name');
+    } catch (err: unknown) {
+      const e = err as { error?: string };
+      setError(e.error || 'Failed to update name');
     } finally {
       setSaving(false);
     }
@@ -102,12 +104,13 @@ export default function SourceDetailPage() {
     setSaving(true);
     try {
       const updated = await api.updateSource(sourceId, {
-        description: editDesc.trim() || null,
-      } as any);
+        description: editDesc.trim() || undefined,
+      });
       setSource(updated);
       setEditingDesc(false);
-    } catch (err: any) {
-      setError(err.error || 'Failed to update description');
+    } catch (err: unknown) {
+      const e = err as { error?: string };
+      setError(e.error || 'Failed to update description');
     } finally {
       setSaving(false);
     }
@@ -118,8 +121,9 @@ export default function SourceDetailPage() {
     try {
       await api.deleteSource(sourceId);
       router.push('/dashboard/sources');
-    } catch (err: any) {
-      setError(err.error || 'Failed to delete source');
+    } catch (err: unknown) {
+      const e = err as { error?: string };
+      setError(e.error || 'Failed to delete source');
       setDeleting(false);
       setDeleteDialogOpen(false);
     }
@@ -129,8 +133,9 @@ export default function SourceDetailPage() {
     try {
       await api.deleteRecipe(sourceId, recipeId);
       setRecipes((prev) => prev.filter((r) => r.id !== recipeId));
-    } catch (err: any) {
-      setError(err.error || 'Failed to delete recipe');
+    } catch (err: unknown) {
+      const e = err as { error?: string };
+      setError(e.error || 'Failed to delete recipe');
     }
   };
 

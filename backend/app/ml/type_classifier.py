@@ -20,7 +20,10 @@ try:
 except ImportError:
     HAS_JOBLIB = False
 
-from backend.app.ml.features import extract_features, FEATURE_NAMES, NUM_FEATURES
+try:
+    from app.ml.features import extract_features, FEATURE_NAMES, NUM_FEATURES
+except ImportError:
+    from backend.app.ml.features import extract_features, FEATURE_NAMES, NUM_FEATURES
 
 logger = logging.getLogger(__name__)
 

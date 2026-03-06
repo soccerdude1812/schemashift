@@ -37,8 +37,9 @@ export default function ScanResultPage() {
             // Source might not exist anymore
           }
         }
-      } catch (err: any) {
-        setError(err.error || 'Failed to load scan result');
+      } catch (err: unknown) {
+        const e = err as { error?: string };
+        setError(e.error || 'Failed to load scan result');
       } finally {
         setLoading(false);
       }
@@ -54,8 +55,9 @@ export default function ScanResultPage() {
         const updated = await api.updateSource(scan.sourceId, { name });
         setSource(updated);
         setScan((prev) => (prev ? { ...prev, isNewSource: false } : prev));
-      } catch (err: any) {
-        setError(err.error || 'Failed to name source');
+      } catch (err: unknown) {
+        const e = err as { error?: string };
+        setError(e.error || 'Failed to name source');
       }
     },
     [scan]

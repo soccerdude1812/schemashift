@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { Source, Recipe } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,12 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/shared/empty-state';
-import { BookOpen, ChevronRight, Trash2 } from 'lucide-react';
+import { BookOpen, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
 export default function RecipesPage() {
+  const router = useRouter();
   const [sources, setSources] = useState<Source[]>([]);
   const [recipes, setRecipes] = useState<Record<string, Recipe[]>>({});
   const [loading, setLoading] = useState(true);
@@ -67,7 +69,7 @@ export default function RecipesPage() {
           title="No recipes yet"
           description="Recipes are cleaning rules that automatically apply when you scan a known data source. Upload a file and create your first recipe."
           actionLabel="Upload a file"
-          actionHref="/dashboard/scan"
+          onAction={() => router.push('/dashboard/scan')}
         />
       </div>
     );

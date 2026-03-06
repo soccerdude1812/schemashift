@@ -157,6 +157,7 @@ export interface DriftEvent {
   sourceId: string;
   scanId: string;
   eventType: 'column_added' | 'column_removed' | 'column_renamed' | 'type_changed' | 'distribution_shift' | 'anomaly_detected';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   details: Record<string, any>;
   severity: 'low' | 'medium' | 'high';
   createdAt: string;
@@ -173,6 +174,7 @@ export interface PaginatedResponse<T> {
 export interface ApiError {
   error: string;
   code: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   details?: any;
 }
 

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SourceCard } from '@/components/dashboard/source-card';
 import { EmptyState } from '@/components/shared/empty-state';
-import { Search, Database, Upload } from 'lucide-react';
+import { Search, Database } from 'lucide-react';
 
 export default function SourcesPage() {
   const router = useRouter();
@@ -24,8 +24,9 @@ export default function SourcesPage() {
       try {
         const res = await api.getSources(1, 100);
         setSources(res.data || []);
-      } catch (err: any) {
-        setError(err.error || 'Failed to load sources');
+      } catch (err: unknown) {
+        const e = err as { error?: string };
+        setError(e.error || 'Failed to load sources');
       } finally {
         setLoading(false);
       }

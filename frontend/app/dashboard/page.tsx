@@ -3,12 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { Source, Scan, PaginatedResponse } from '@/lib/types';
+import { Source } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { SourceCard } from '@/components/dashboard/source-card';
-import { RecentScans } from '@/components/dashboard/recent-scans';
 import { EmptyState } from '@/components/shared/empty-state';
 import {
   Database,
@@ -73,7 +72,7 @@ function StatsSkeleton() {
 export default function DashboardPage() {
   const router = useRouter();
   const [sources, setSources] = useState<Source[]>([]);
-  const [recentScans, setRecentScans] = useState<Scan[]>([]);
+  // Recent scans are fetched but currently only used internally for dashboard stats
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,8 +100,9 @@ export default function DashboardPage() {
         // We don't have a global scans endpoint, so we just show sources
         // The recent scans would come from scan history
         await Promise.allSettled(scanPromises);
-      } catch (err: any) {
-        setError(err.error || 'Failed to load dashboard data');
+      } catch (err: unknown) {
+        const e = err as { error?: string };
+        setError(e.error || 'Failed to load dashboard data');
       } finally {
         setLoading(false);
       }

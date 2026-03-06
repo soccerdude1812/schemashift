@@ -19,13 +19,22 @@ import time
 from typing import Dict, Any, List, Optional
 import pandas as pd
 
-from backend.app.ml.format_detector import detect_format
-from backend.app.ml.schema_extractor import parse_file_to_dataframe, extract_schema
-from backend.app.ml.type_classifier import classify_all_columns
-from backend.app.ml.fingerprinter import fingerprint_schema
-from backend.app.ml.drift_detector import detect_drift
-from backend.app.ml.anomaly_detector import detect_anomalies
-from backend.app.ml.recipe_engine import apply_recipes
+try:
+    from app.ml.format_detector import detect_format
+    from app.ml.schema_extractor import parse_file_to_dataframe, extract_schema
+    from app.ml.type_classifier import classify_all_columns
+    from app.ml.fingerprinter import fingerprint_schema
+    from app.ml.drift_detector import detect_drift
+    from app.ml.anomaly_detector import detect_anomalies
+    from app.ml.recipe_engine import apply_recipes
+except ImportError:
+    from backend.app.ml.format_detector import detect_format
+    from backend.app.ml.schema_extractor import parse_file_to_dataframe, extract_schema
+    from backend.app.ml.type_classifier import classify_all_columns
+    from backend.app.ml.fingerprinter import fingerprint_schema
+    from backend.app.ml.drift_detector import detect_drift
+    from backend.app.ml.anomaly_detector import detect_anomalies
+    from backend.app.ml.recipe_engine import apply_recipes
 
 logger = logging.getLogger(__name__)
 

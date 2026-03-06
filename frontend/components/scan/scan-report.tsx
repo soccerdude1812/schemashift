@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Scan, Source } from '@/lib/types';
-import { cn, qualityLabel, severityColor } from '@/lib/utils';
+import { cn, severityColor } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

@@ -4,6 +4,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7860';
 const CLIENT_TIMEOUT = 45000;
 
 // snake_case to camelCase recursive transform
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toCamelCase(obj: any): any {
   if (Array.isArray(obj)) return obj.map(toCamelCase);
   if (obj !== null && typeof obj === 'object' && !(obj instanceof Date)) {
@@ -11,6 +12,7 @@ function toCamelCase(obj: any): any {
       const camelKey = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
       acc[camelKey] = toCamelCase(obj[key]);
       return acc;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }, {} as any);
   }
   return obj;
@@ -61,6 +63,7 @@ async function apiFetch<T>(
     if (!text) return {} as T;
     const json = JSON.parse(text);
     return toCamelCase(json) as T;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     clearTimeout(timeout);
     if (err.code) throw err; // Already an ApiError

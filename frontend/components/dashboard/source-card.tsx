@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Source } from '@/lib/types';
-import { cn, formatDate, qualityLabel } from '@/lib/utils';
+import { cn, formatDate } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Database, Clock, ScanLine, AlertTriangle } from 'lucide-react';
@@ -13,8 +13,6 @@ interface SourceCardProps {
 }
 
 export function SourceCard({ source, className }: SourceCardProps) {
-  const { label, color } = qualityLabel(source.qualityScore);
-
   const scoreColor =
     source.qualityScore >= 90
       ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'

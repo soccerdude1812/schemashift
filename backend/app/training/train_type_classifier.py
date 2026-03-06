@@ -32,8 +32,12 @@ def train_model():
     print("\nStep 1: Generating synthetic training data...")
     start_time = time.time()
 
-    from backend.app.training.synthetic_data import generate_training_data
-    from backend.app.ml.features import FEATURE_NAMES
+    try:
+        from app.training.synthetic_data import generate_training_data
+        from app.ml.features import FEATURE_NAMES
+    except ImportError:
+        from backend.app.training.synthetic_data import generate_training_data
+        from backend.app.ml.features import FEATURE_NAMES
 
     df = generate_training_data(samples_per_class=10_000, values_per_sample=100)
     gen_time = time.time() - start_time

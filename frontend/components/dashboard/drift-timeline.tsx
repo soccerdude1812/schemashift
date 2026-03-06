@@ -90,7 +90,8 @@ const eventTypeColors: Record<string, string> = {
   anomaly_detected: 'bg-orange-500/10 text-orange-400',
 };
 
-function CustomTooltip({ active, payload }: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function CustomTooltip({ active, payload }: { active?: boolean; payload?: any[] }) {
   if (!active || !payload || !payload.length) return null;
 
   const point = payload[0]?.payload as ChartPoint;

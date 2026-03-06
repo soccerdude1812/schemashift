@@ -343,7 +343,10 @@ def generate_training_data(
     Returns:
         DataFrame with 28 feature columns + 'label' column.
     """
-    from backend.app.ml.features import extract_features, FEATURE_NAMES
+    try:
+        from app.ml.features import extract_features, FEATURE_NAMES
+    except ImportError:
+        from backend.app.ml.features import extract_features, FEATURE_NAMES
 
     all_features = []
     all_labels = []

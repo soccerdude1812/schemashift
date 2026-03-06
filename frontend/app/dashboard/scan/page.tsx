@@ -26,7 +26,7 @@ export default function ScanPage() {
         const result = await api.scan(file);
         // Navigate to scan result page
         router.push(`/dashboard/scan/${result.id}`);
-      } catch (err: any) {
+      } catch (err: unknown) {
         setState('error');
         const apiErr = err as ApiError;
         setError(
