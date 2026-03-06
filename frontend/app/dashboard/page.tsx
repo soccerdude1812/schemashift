@@ -116,7 +116,7 @@ export default function DashboardPage() {
   const avgQuality =
     sources.length > 0
       ? Math.round(
-          sources.reduce((sum, s) => sum + s.qualityScore, 0) / sources.length
+          (sources.reduce((sum, s) => sum + s.qualityScore, 0) / sources.length) * 100
         )
       : 0;
   const driftAlerts = sources.filter((s) => s.driftScore > 0).length;
@@ -200,7 +200,7 @@ export default function DashboardPage() {
         <StatsCard
           icon={<BarChart3 className="h-5 w-5 text-cyan-400" />}
           label="Avg Quality"
-          value={avgQuality}
+          value={`${avgQuality}%`}
           sublabel={avgQuality >= 70 ? 'Good' : 'Needs Attention'}
           color="bg-cyan-500/10"
         />
