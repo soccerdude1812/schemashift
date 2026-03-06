@@ -70,7 +70,7 @@ export function Hero() {
             size="lg"
             className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold px-8 py-6 text-base rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all duration-300"
           >
-            <Link href="/dashboard">
+            <Link href="/setup">
               Install for Google Sheets
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
