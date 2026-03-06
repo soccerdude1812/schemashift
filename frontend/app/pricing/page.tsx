@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Check, X, Database, ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { UpgradeButton } from "@/components/shared/upgrade-button";
 
 const plans = [
   {
@@ -12,6 +13,7 @@ const plans = [
     cta: "Get Started Free",
     ctaHref: "/dashboard",
     highlight: false,
+    stripePrice: null,
   },
   {
     name: "Pro",
@@ -19,8 +21,9 @@ const plans = [
     period: "/month",
     description: "For data professionals who need full pipeline coverage.",
     cta: "Start Pro Trial",
-    ctaHref: "/dashboard",
+    ctaHref: null,
     highlight: true,
+    stripePrice: process.env.STRIPE_PRICE_PRO_MONTHLY?.trim() || "price_1T7OEdC4ZKN578LyDvD7vWnU",
   },
   {
     name: "Team",
@@ -28,8 +31,9 @@ const plans = [
     period: "/month",
     description: "For data teams that need shared schemas and collaboration.",
     cta: "Contact Sales",
-    ctaHref: "/dashboard",
+    ctaHref: null,
     highlight: false,
+    stripePrice: process.env.STRIPE_PRICE_TEAM_MONTHLY?.trim() || "price_1T7OGDC4ZKN578LyqXjnhldM",
   },
 ];
 
@@ -336,16 +340,26 @@ export default function PricingPage() {
                 <p className="mt-2 text-sm text-zinc-400 flex-1">
                   {plan.description}
                 </p>
-                <Button
-                  asChild
-                  className={`w-full mt-6 rounded-xl py-5 font-semibold transition-all duration-300 ${
-                    plan.highlight
-                      ? "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-lg shadow-emerald-500/20"
-                      : "bg-zinc-800 hover:bg-zinc-700 text-zinc-100"
-                  }`}
-                >
-                  <Link href={plan.ctaHref}>{plan.cta}</Link>
-                </Button>
+                {plan.stripePrice ? (
+                  <div className="mt-6">
+                    <UpgradeButton
+                      priceId={plan.stripePrice}
+                      label={plan.cta}
+                      variant={plan.highlight ? "highlight" : "default"}
+                    />
+                  </div>
+                ) : (
+                  <Button
+                    asChild
+                    className={`w-full mt-6 rounded-xl py-5 font-semibold transition-all duration-300 ${
+                      plan.highlight
+                        ? "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-lg shadow-emerald-500/20"
+                        : "bg-zinc-800 hover:bg-zinc-700 text-zinc-100"
+                    }`}
+                  >
+                    <Link href={plan.ctaHref!}>{plan.cta}</Link>
+                  </Button>
+                )}
               </div>
             ))}
           </div>

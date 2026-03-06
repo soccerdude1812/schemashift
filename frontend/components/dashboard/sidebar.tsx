@@ -8,8 +8,11 @@ import {
   Upload,
   Settings,
   Layers,
+  LogOut,
+  User,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/auth-context';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -24,10 +27,16 @@ interface SidebarNavProps {
 
 export function SidebarNav({ onNavigate }: SidebarNavProps) {
   const pathname = usePathname();
+  const { user, signOut } = useAuth();
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard';
     return pathname.startsWith(href);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    window.location.href = '/';
   };
 
   return (
@@ -58,11 +67,29 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
         ))}
       </nav>
 
-      <div className="border-t border-zinc-800 p-4">
-        <div className="rounded-lg bg-zinc-900 p-3">
-          <p className="text-xs font-medium text-zinc-400">Free Plan</p>
-          <p className="mt-0.5 text-xs text-zinc-500">5 sources, 10 scans/hr</p>
-        </div>
+      <div className="border-t border-zinc-800 p-3 space-y-3">
+        {/* User info */}
+        {user && (
+          <div className="flex items-center gap-2.5 rounded-lg bg-zinc-900 px-3 py-2.5">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-500/20">
+              <User className="h-3.5 w-3.5 text-emerald-400" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-medium text-zinc-300">
+                {user.email}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Sign out button */}
+        <button
+          onClick={handleSignOut}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-400 transition-colors hover:bg-zinc-800/50 hover:text-zinc-100"
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          Sign Out
+        </button>
       </div>
     </div>
   );

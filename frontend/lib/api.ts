@@ -1,5 +1,6 @@
 import { ApiError, PaginatedResponse, Scan, Session, Source, Recipe, DriftEvent } from './types';
 import { mockApi } from './mock-api';
+import { createBrowserClient } from './supabase';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 const CLIENT_TIMEOUT = 45000;
@@ -50,14 +51,75 @@ function toCamelCase(obj: any): any {
   return obj;
 }
 
-function getSessionId(): string {
+// Cache the backend-registered session ID
+let _registeredSessionId: string | null = null;
+let _sessionInitPromise: Promise<string> | null = null;
+
+async function getSessionId(): Promise<string> {
   if (typeof window === 'undefined') return '';
-  let sid = localStorage.getItem('schemashift_session_id');
-  if (!sid) {
-    sid = crypto.randomUUID();
-    localStorage.setItem('schemashift_session_id', sid);
+  if (useMockApi) {
+    // Mock mode: just use a local UUID, no backend call needed
+    let sid = localStorage.getItem('schemashift_session_id');
+    if (!sid) {
+      sid = crypto.randomUUID();
+      localStorage.setItem('schemashift_session_id', sid);
+    }
+    return sid;
   }
-  return sid;
+
+  // Return cached session if available
+  if (_registeredSessionId) return _registeredSessionId;
+
+  // Deduplicate concurrent initialization calls
+  if (_sessionInitPromise) return _sessionInitPromise;
+
+  _sessionInitPromise = _initBackendSession();
+  try {
+    const sid = await _sessionInitPromise;
+    return sid;
+  } finally {
+    _sessionInitPromise = null;
+  }
+}
+
+async function _initBackendSession(): Promise<string> {
+  // Check if we have a locally stored session ID
+  let localSid = localStorage.getItem('schemashift_session_id') || '';
+
+  // Try to get the Supabase user ID to use as the session ID
+  try {
+    const supabase = createBrowserClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.id) localSid = user.id;
+  } catch {
+    // Fall through
+  }
+
+  // Register with the backend (GET /api/v1/session creates if not found)
+  try {
+    const headers: Record<string, string> = {};
+    if (localSid) headers['X-Session-ID'] = localSid;
+
+    const res = await fetch(`${API_URL}/api/v1/session`, { headers });
+    if (res.ok) {
+      const data = await res.json();
+      const sid = data.id || data.session_id;
+      if (sid) {
+        _registeredSessionId = sid;
+        localStorage.setItem('schemashift_session_id', sid);
+        return sid;
+      }
+    }
+  } catch {
+    // Backend unreachable — fall through to local-only mode
+  }
+
+  // Fallback: generate local UUID if backend is unreachable
+  if (!localSid) {
+    localSid = crypto.randomUUID();
+    localStorage.setItem('schemashift_session_id', localSid);
+  }
+  return localSid;
 }
 
 async function apiFetch<T>(
@@ -68,8 +130,9 @@ async function apiFetch<T>(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), CLIENT_TIMEOUT);
 
+  const sessionId = await getSessionId();
   const headers: Record<string, string> = {
-    'X-Session-ID': getSessionId(),
+    'X-Session-ID': sessionId,
     ...(options.headers as Record<string, string> || {}),
   };
   if (!(options.body instanceof FormData)) {

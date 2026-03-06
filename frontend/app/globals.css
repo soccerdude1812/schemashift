@@ -131,6 +131,26 @@
   }
 }
 
+@keyframes demo-dropzone-ping {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes demo-tab-underline {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
 @layer utilities {
   .animate-gradient-shift {
     animation: gradient-shift 6s ease infinite;
@@ -151,6 +171,13 @@
   }
   .text-balance {
     text-wrap: balance;
+  }
+  .demo-dropzone-ping {
+    animation: demo-dropzone-ping 0.8s ease-out forwards;
+  }
+  .demo-tab-underline {
+    animation: demo-tab-underline 0.3s ease-out forwards;
+    transform-origin: left;
   }
 }
 

@@ -1,7 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { UpgradeButton } from "@/components/shared/upgrade-button";
+
+const STRIPE_PRICE_PRO = "price_1T7OEdC4ZKN578LyDvD7vWnU";
+const STRIPE_PRICE_TEAM = "price_1T7OGDC4ZKN578LyqXjnhldM";
 
 const plans = [
   {
@@ -12,6 +18,7 @@ const plans = [
     cta: "Get Started Free",
     ctaHref: "/dashboard",
     highlight: false,
+    stripePrice: null as string | null,
     features: [
       { text: "5 data sources", included: true },
       { text: "Schema profiling", included: true },
@@ -31,8 +38,9 @@ const plans = [
     period: "/month",
     description: "For data professionals who need full pipeline coverage.",
     cta: "Start Pro Trial",
-    ctaHref: "/dashboard",
+    ctaHref: null as string | null,
     highlight: true,
+    stripePrice: STRIPE_PRICE_PRO as string | null,
     features: [
       { text: "Unlimited data sources", included: true },
       { text: "Advanced schema profiling", included: true },
@@ -52,8 +60,9 @@ const plans = [
     period: "/month",
     description: "For data teams that need shared schemas and collaboration.",
     cta: "Contact Sales",
-    ctaHref: "/dashboard",
+    ctaHref: null as string | null,
     highlight: false,
+    stripePrice: STRIPE_PRICE_TEAM as string | null,
     features: [
       { text: "Everything in Pro", included: true },
       { text: "Up to 20 team members", included: true },
@@ -121,16 +130,26 @@ export function PricingTable() {
               </div>
 
               {/* CTA */}
-              <Button
-                asChild
-                className={`w-full mb-8 rounded-xl py-5 font-semibold transition-all duration-300 ${
-                  plan.highlight
-                    ? "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-lg shadow-emerald-500/20"
-                    : "bg-zinc-800 hover:bg-zinc-700 text-zinc-100"
-                }`}
-              >
-                <Link href={plan.ctaHref}>{plan.cta}</Link>
-              </Button>
+              {plan.stripePrice ? (
+                <div className="mb-8">
+                  <UpgradeButton
+                    priceId={plan.stripePrice}
+                    label={plan.cta}
+                    variant={plan.highlight ? "highlight" : "default"}
+                  />
+                </div>
+              ) : (
+                <Button
+                  asChild
+                  className={`w-full mb-8 rounded-xl py-5 font-semibold transition-all duration-300 ${
+                    plan.highlight
+                      ? "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-lg shadow-emerald-500/20"
+                      : "bg-zinc-800 hover:bg-zinc-700 text-zinc-100"
+                  }`}
+                >
+                  <Link href={plan.ctaHref!}>{plan.cta}</Link>
+                </Button>
+              )}
 
               {/* Features */}
               <ul className="space-y-3 flex-1">
