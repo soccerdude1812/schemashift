@@ -1,9 +1,41 @@
 import { ApiError, PaginatedResponse, Scan, Session, Source, Recipe, DriftEvent } from './types';
+import { mockApi } from './mock-api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7860';
 const CLIENT_TIMEOUT = 45000;
+const MOCK_FAILURE_THRESHOLD = 2; // Switch to mock after this many consecutive failures
 
+// ---------------------------------------------------------------------------
+// Mock-mode state (client-side only)
+// ---------------------------------------------------------------------------
+let consecutiveFailures = 0;
+let useMockApi = false;
+
+/** Check if we're currently in demo/mock mode */
+export function isUsingMockApi(): boolean {
+  return useMockApi;
+}
+
+/** Force mock mode on (useful for demo/preview deployments) */
+export function enableMockApi(): void {
+  useMockApi = true;
+  if (typeof window !== 'undefined') {
+    console.log('[SchemaShift] Mock API enabled — showing demo data');
+  }
+}
+
+/** Reset to try the real backend again */
+export function resetMockApi(): void {
+  useMockApi = false;
+  consecutiveFailures = 0;
+  if (typeof window !== 'undefined') {
+    console.log('[SchemaShift] Mock API reset — will try real backend');
+  }
+}
+
+// ---------------------------------------------------------------------------
 // snake_case to camelCase recursive transform
+// ---------------------------------------------------------------------------
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toCamelCase(obj: any): any {
   if (Array.isArray(obj)) return obj.map(toCamelCase);
@@ -62,22 +94,43 @@ async function apiFetch<T>(
     const text = await res.text();
     if (!text) return {} as T;
     const json = JSON.parse(text);
+
+    // Real backend responded — reset failure counter
+    consecutiveFailures = 0;
+
     return toCamelCase(json) as T;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     clearTimeout(timeout);
-    if (err.code) throw err; // Already an ApiError
+    if (err.code && err.code !== 'NETWORK_ERROR') throw err; // Already a real ApiError from the backend
     if (retries > 0 && (err.name === 'AbortError' || err.message?.includes('fetch'))) {
-      const delay = (4 - retries) * 1000;
-      await new Promise(r => setTimeout(r, delay));
+      const delayMs = (4 - retries) * 1000;
+      await new Promise(r => setTimeout(r, delayMs));
       return apiFetch<T>(path, options, retries - 1);
     }
+
+    // Track consecutive network failures
+    consecutiveFailures++;
+    if (consecutiveFailures >= MOCK_FAILURE_THRESHOLD && !useMockApi) {
+      useMockApi = true;
+      if (typeof window !== 'undefined') {
+        console.log(
+          `[SchemaShift] Backend unreachable after ${consecutiveFailures} attempts — falling back to demo data`
+        );
+      }
+    }
+
     throw { error: err.message || 'Network error', code: 'NETWORK_ERROR' } as ApiError;
   }
 }
 
-// API methods
-export const api = {
+// ---------------------------------------------------------------------------
+// Proxy: tries real backend first, falls back to mock if useMockApi is set
+// ---------------------------------------------------------------------------
+
+type ApiType = typeof realApi;
+
+const realApi = {
   // Session
   createSession: () => apiFetch<Session>('/api/v1/session'),
 
@@ -118,3 +171,42 @@ export const api = {
   // Health
   health: () => apiFetch<{ status: string; version: string }>('/api/v1/health'),
 };
+
+/**
+ * Creates a proxy that intercepts every API call:
+ * - If `useMockApi` is true, route directly to mockApi
+ * - Otherwise try realApi; on NETWORK_ERROR, fall back to mockApi
+ */
+function createFallbackProxy(): ApiType {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handler: ProxyHandler<any> = {
+    get(_target, prop: string) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (...args: any[]) => {
+        // Already in mock mode — skip the real backend entirely
+        if (useMockApi) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          return (mockApi as any)[prop](...args);
+        }
+
+        // Try real backend first
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (realApi as any)[prop](...args).catch((err: ApiError) => {
+          if (err.code === 'NETWORK_ERROR') {
+            if (typeof window !== 'undefined') {
+              console.log(`[SchemaShift] ${prop}() failed — using demo data`);
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return (mockApi as any)[prop](...args);
+          }
+          throw err;
+        });
+      };
+    },
+  };
+
+  return new Proxy(realApi, handler);
+}
+
+// API methods — automatically falls back to mock data when backend is down
+export const api: ApiType = createFallbackProxy();
